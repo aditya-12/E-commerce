@@ -10,11 +10,17 @@ const generateToken = async (userId) => {
   const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "7d",
   });
+
   return { accessToken, refreshToken };
 };
 
 const storeRefreshToken = async (userId, refreshToken) => {
-  await redis.set(`refreshToken:${userId}`, refreshToken, "EX", "7*24*60*60");
+  await redis.set(
+    `refresh_Token:${userId}`,
+    refreshToken,
+    "EX",
+    7 * 24 * 60 * 60
+  );
 };
 
 const setCookies = async (res, accessToken, refreshToken) => {
@@ -41,7 +47,12 @@ export const signup = async (req, res) => {
     }
     const user = await User.create({ email, password, name });
 
-    const { accessToken, refreshToken } = generateToken(User._id);
+    const { accessToken, refreshToken } = await generateToken(user._id);
+    console.log("access_secret:", process.env.ACCESS_TOKEN_SECRET);
+    console.log(`access_token : ${accessToken}`);
+    console.log(`refresh_secret: ${process.env.REFRESH_TOKEN_SECRET}`);
+    console.log(`refresh_token : ${refreshToken}`);
+
     await storeRefreshToken(user._id, refreshToken);
     setCookies(res, accessToken, refreshToken);
 
