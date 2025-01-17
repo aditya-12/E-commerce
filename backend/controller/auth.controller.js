@@ -48,15 +48,16 @@ export const signup = async (req, res) => {
     const user = await User.create({ email, password, name });
 
     const { accessToken, refreshToken } = await generateToken(user._id);
-    console.log("access_secret:", process.env.ACCESS_TOKEN_SECRET);
-    console.log(`access_token : ${accessToken}`);
-    console.log(`refresh_secret: ${process.env.REFRESH_TOKEN_SECRET}`);
-    console.log(`refresh_token : ${refreshToken}`);
 
     await storeRefreshToken(user._id, refreshToken);
     setCookies(res, accessToken, refreshToken);
 
-    res.status(201).json({ user, message: "user created successfully" });
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
   } catch (error) {
     console.log("Error in signup controller", error.message);
     res.status(500).json({ message: error.message });
@@ -64,9 +65,24 @@ export const signup = async (req, res) => {
 };
 
 // export const login = async (req,res)=> {
-
 // };
 
-// export const logout = async (req, res) => {
+export const logout = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+      );
+      await redis.del(`refresh_token:${decoded.userId}`);
+    }
 
-// };
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.log("Error in logout controller", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
