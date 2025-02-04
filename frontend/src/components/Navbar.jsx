@@ -2,6 +2,7 @@ import { ShoppingCart, UserPlus, LogIn, LogOut, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
+import Logo from "/ShopEaseLogov2.svg";
 
 const Navbar = () => {
   const {user, logout} = useUserStore();
@@ -16,7 +17,8 @@ const Navbar = () => {
             to="/"
             className="text-2xl font-bold text-emerald-400 items-center space-x-2 flex"
           >
-            Shop Ease
+            <img src={Logo} alt="Shop Ease Logo" className="w-16 h-auto sm:w-20 md:w-24" />
+            ShopEase
           </Link>
 
           <nav className="flex flex-wrap items-center gap-4">
